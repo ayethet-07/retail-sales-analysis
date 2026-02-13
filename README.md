@@ -18,7 +18,7 @@ This repo showcases data handling, visualization, and insights generation—tran
 - Size: ~1000 rows (fictional retail data for privacy).
 
 ## Setup
-1. Clone the repo: `git clone https://github.com/ayethetthetkhaing/retail-sales-analysis.git`
+1. Clone the repo: `git clone https://github.com/ayethet-07/retail-sales-analysis.git`
 2. Install dependencies: `pip install -r requirements.txt`
 3. Run the script: `python analysis.py` (generates plots in /images).
 
