@@ -1,0 +1,28 @@
+-- Create these measures after importing retail_sales.csv as table 'retail_sales'.
+Total Sales = SUM(retail_sales[Total Amount])
+
+Transactions = COUNTROWS(retail_sales)
+
+Average Transaction Value = DIVIDE([Total Sales], [Transactions])
+
+Units Sold = SUM(retail_sales[Quantity])
+
+Units per Transaction = DIVIDE([Units Sold], [Transactions])
+
+Distinct Customers = DISTINCTCOUNT(retail_sales[Customer ID])
+
+Sales Previous Month =
+CALCULATE(
+    [Total Sales],
+    DATEADD('Calendar'[Date], -1, MONTH)
+)
+
+Month-over-Month Growth % =
+DIVIDE([Total Sales] - [Sales Previous Month], [Sales Previous Month])
+
+-- Create a calendar table and mark it as the date table:
+Calendar =
+CALENDAR(
+    MIN(retail_sales[Date]),
+    MAX(retail_sales[Date])
+)
