@@ -1,52 +1,54 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-import numpy as np
+from pathlib import Path
 
-# Load real dataset (download retail_sales.csv from Kaggle and place in /data)
-df = pd.read_csv('data/retail_sales.csv')
+ROOT = Path(__file__).resolve().parent
+OUTPUT = ROOT / "images"
+OUTPUT.mkdir(exist_ok=True)
 
-# If no real data yet, uncomment to generate sample (for testing)
-# np.random.seed(42)
-# dates = pd.date_range(start='2023-01-01', end='2023-12-31', freq='D')
-# data = {
-#     'Transaction ID': range(1, 366),
-#     'Date': dates,
-#     'Customer ID': np.random.choice(['C' + str(i) for i in range(100)], 365),
-#     'Gender': np.random.choice(['Male', 'Female'], 365),
-#     'Age': np.random.randint(18, 70, 365),
-#     'Product Category': np.random.choice(['Electronics', 'Clothing', 'Beauty', 'Books'], 365),
-#     'Quantity': np.random.randint(1, 5, 365),
-#     'Price per Unit': np.random.choice([10, 20, 50, 100, 200], 365),
-# }
-# data['Total Amount'] = [q * p for q, p in zip(data['Quantity'], data['Price per Unit'])]
-# df = pd.DataFrame(data)
-# df.to_csv('data/sample_retail_sales.csv', index=False)
+# Use the dataset committed at the repository root.
+df = pd.read_csv(ROOT / "retail_sales.csv")
+df["Date"] = pd.to_datetime(df["Date"])
 
 # Basic EDA
 print(df.head())
-print(df.describe())
+print(df.describe(include="all"))
 print(df.info())
 
-# Sales trends over time
-df['Date'] = pd.to_datetime(df['Date'])
-df.set_index('Date', inplace=True)
-monthly_sales = df['Total Amount'].resample('ME').sum()  # Use 'ME' for month-end
-plt.figure(figsize=(10,5))
-monthly_sales.plot()
-plt.title('Monthly Sales Trends')
-plt.savefig('images/monthly_sales.png')
+# Monthly sales trend. Keep all dates in the source, including the two
+# transactions on 2024-01-01; interpret January 2024 as a partial month.
+monthly_sales = (
+    df.set_index("Date")["Total Amount"]
+      .resample("ME")
+      .sum()
+)
+fig, ax = plt.subplots(figsize=(10, 5))
+monthly_sales.plot(ax=ax, marker="o")
+ax.set_title("Monthly Sales Trends")
+ax.set_xlabel("Month")
+ax.set_ylabel("Sales (dataset units)")
+fig.tight_layout()
+fig.savefig(OUTPUT / "monthly_sales.png", dpi=160)
+plt.close(fig)
 
 # Sales by category
-category_sales = df.groupby('Product Category')['Total Amount'].sum()
-plt.figure(figsize=(8,4))
-category_sales.plot(kind='bar')
-plt.title('Sales by Product Category')
-plt.savefig('images/category_sales.png')
+category_sales = df.groupby("Product Category")["Total Amount"].sum().sort_values(ascending=False)
+fig, ax = plt.subplots(figsize=(8, 4))
+category_sales.plot(kind="bar", ax=ax)
+ax.set_title("Sales by Product Category")
+ax.set_xlabel("Product category")
+ax.set_ylabel("Sales (dataset units)")
+fig.tight_layout()
+fig.savefig(OUTPUT / "category_sales.png", dpi=160)
+plt.close(fig)
 
 # Customer demographics
-sns.boxplot(x='Gender', y='Age', data=df)
-plt.title('Age Distribution by Gender')
-plt.savefig('images/age_gender.png')
+fig, ax = plt.subplots(figsize=(8, 4))
+sns.boxplot(x="Gender", y="Age", data=df, ax=ax)
+ax.set_title("Age Distribution by Gender")
+fig.tight_layout()
+fig.savefig(OUTPUT / "age_gender.png", dpi=160)
+plt.close(fig)
 
-print('Analysis complete. Plots saved in /images.')
+print(f"Analysis complete. Plots saved in {OUTPUT}.")
